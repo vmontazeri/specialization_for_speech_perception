@@ -8,8 +8,7 @@ How to use:
  - Open MATLAB.
  - Run the script 'setup_experiment.m'. This will create an empty mat file that will contain all the data. 
  - Run the script 'experiment.m'.
-
-Note: You can set the experiment.m into debug mode to see the spectrograms of the stimuli. To do so, set the debug parameter in the code to 1.
+	- Note: You can set the experiment.m into debug mode to see the spectrograms of the stimuli. This will help ensure the accuracy.  
 
 Vahid Montazeri
 3/22/2020
