@@ -14,6 +14,8 @@ end
 listener_code = input('Enter listener code or press enter to generate an automatic code:\n', 's');
 listener_code = [listener_code '_' strrep(strrep(strrep(char(datetime), ':', '_'), '-', '_'), ' ', '_')];
 
+training( debug, listener_code );
+
 F1_f_stable = 750;
 F1_f_start    = 250;
 F1_f_end     = 750;
@@ -108,9 +110,11 @@ for trial = 1 : length(conditions)
     
     valid_answer = 0;
     while(~valid_answer)
-        disp('Which one did you hear?'); disp('(1) /da/'); disp('(2) /ga/'); disp('(3) Chirp1'); disp('(4) Chirp2')
+        disp('Which one did you hear?'); 
+        disp('(1) /da/'); disp('(2) /ga/'); disp('(3) Chirp1'); disp('(4) Chirp2');
+         disp('(5) /da/+Chirp1'); disp('(6) /da/+Chirp2'); disp('(7) /ga/+Chirp1'); disp('(8) /ga/+Chirp2')
         R = input('Enter your answer: ');
-        if( R==1 || R==2 || R==3 || R==4 ), valid_answer = 1; else; disp('invalid answer'); pause(1); end
+        if( R==1 || R==2 || R==3 || R==4  || R==5 || R==6 || R==7 || R==8), valid_answer = 1; else; disp('invalid answer'); pause(1); end
     end
 
     load('response.mat');
