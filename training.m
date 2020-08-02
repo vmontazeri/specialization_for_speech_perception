@@ -95,19 +95,31 @@ for trial = 1 : length(conditions)
     soundsc(stimuli_to_play, FS)
     pause(length(stimuli_to_play)/FS);
     if(debug)
-        figure(1); spectrogram(stimuli_to_play(:,1)+rand(size(stimuli_to_play(:,1)))/10, 128, 32, 1024, 'yaxis'); title('Right ear')
-        figure(2); spectrogram(stimuli_to_play(:,1)+rand(size(stimuli_to_play(:,1)))/10, 128, 32, 1024, 'yaxis'); title('Left ear')
+        figure(1); 
+        spectrogram(stimuli_to_play(:,1)+rand(size(stimuli_to_play(:,1)))/10, 128, 32, 1024, 'yaxis'); 
+        title('Right ear')
+        set(gcf, 'WindowStyle', 'docked')
+        figure(2); 
+        spectrogram(stimuli_to_play(:,1)+rand(size(stimuli_to_play(:,1)))/10, 128, 32, 1024, 'yaxis'); 
+        title('Left ear')
+        set(gcf, 'WindowStyle', 'docked')
     end
     
     valid_answer = 0;
     while(~valid_answer)
         disp('Which one did you hear?'); 
         disp('(1) /da/'); disp('(2) /ga/'); disp('(3) Chirp1'); disp('(4) Chirp2');         
-        R = input('Enter your answer: ');
-        if( R==1 || R==2 || R==3 || R==4), valid_answer = 1; else; disp('invalid answer'); pause(1); end
+        R = input('Enter your answer: ', 's');
+        if(length(R)>1 || isempty(R))
+            disp('invalid answer'); pause(1);
+        else
+            if( strcmpi(R, '1') || strcmpi(R, '2') || strcmpi(R, '3') || strcmpi(R, '4')), valid_answer = 1; 
+            else; disp('invalid answer'); pause(1); 
+            end
+        end
     end
     
-    if(R == correct_answer)
+    if(str2num(R) == correct_answer)
         disp('CORRECT :)');
     else
         switch correct_answer
@@ -127,7 +139,7 @@ for trial = 1 : length(conditions)
     input('Press enter to proceed')
     
     load('training_response.mat');
-    training_response = [training_response; {listener_code factor1_level factor2_level F3_f_start F3_f_end R}];
+    training_response = [training_response; {listener_code factor1_level factor2_level F3_f_start F3_f_end str2num(R)}];
     save('training_response.mat', 'training_response');
 
 end

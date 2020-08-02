@@ -27,9 +27,10 @@ if(~recovery_mode)
     
     listener_code = input('Enter listener code or press enter to generate an automatic code:\n', 's');
     listener_code = [listener_code '_' strrep(strrep(strrep(char(datetime), ':', '_'), '-', '_'), ' ', '_')];
+%     training( debug, listener_code );
+    
 end
 
-% training( debug, listener_code );
 F1_f_stable = 750;
 F1_f_start    = 250;
 F1_f_end     = 750;
@@ -75,6 +76,7 @@ if(~recovery_mode)
             factor1_levels_2 = repelem(factor1_levels_1(i), trial_per_level*length(factor2_levels_1));
             conditions = [conditions; [factor1_levels_2(:) factor2_levels_3(:)]];
         end
+        conditions = conditions(randperm(length(conditions)), :);
     end
     save('.\temp\conditions.mat', 'conditions');
     exp_num = 1;
