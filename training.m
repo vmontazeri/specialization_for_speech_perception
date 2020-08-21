@@ -12,7 +12,7 @@ F3_f_stable          = 2500;
 F3_min_trans_f   = 1750;
 F3_max_trans_f  = 3250;
 
-trans_dur = 50;
+trans_dur = 100;
 stable_dur = 250;
 FS = 16e3;
 left_ear = 1;

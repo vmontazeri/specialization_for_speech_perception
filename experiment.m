@@ -27,7 +27,7 @@ if(~recovery_mode)
     
     listener_code = input('Enter listener code or press enter to generate an automatic code:\n', 's');
     listener_code = [listener_code '_' strrep(strrep(strrep(char(datetime), ':', '_'), '-', '_'), ' ', '_')];
-%     training( debug, listener_code );
+    training( debug, listener_code );
     
 end
 
@@ -43,7 +43,7 @@ F3_f_stable          = 2500;
 F3_min_trans_f   = 1750;
 F3_max_trans_f  = 3250;
 
-trans_dur = 50;
+trans_dur = 100;
 stable_dur = 250;
 FS = 16e3;
 left_ear = 1;
@@ -159,9 +159,9 @@ if(exp_num == 1)
             end
         end
         
-        load('response_experiment1.mat');
-        response = [response; {listener_code factor1_level factor2_level F3_f_start F3_f_end str2num(R)}];
-        save('response_experiment1.mat', 'response');
+%         load('response_experiment1.mat');
+%         response = [response; {listener_code factor1_level factor2_level F3_f_start F3_f_end str2num(R)}];
+%         save('response_experiment1.mat', 'response');
         
     end
     
