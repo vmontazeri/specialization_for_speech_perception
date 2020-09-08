@@ -27,7 +27,7 @@ if(~recovery_mode)
     
     listener_code = input('Enter listener code or press enter to generate an automatic code:\n', 's');
     listener_code = [listener_code '_' strrep(strrep(strrep(char(datetime), ':', '_'), '-', '_'), ' ', '_')];
-%     training( debug, listener_code );
+    training( debug, listener_code );
     
 end
 
@@ -43,7 +43,7 @@ F3_f_stable          = 2500;
 F3_min_trans_f   = 1750;
 F3_max_trans_f  = 3250;
 
-trans_dur = 50;
+trans_dur = 100;
 stable_dur = 250;
 FS = 16e3;
 left_ear = 1;
@@ -59,6 +59,14 @@ stable_indx = trans_dur*FS/1000+1: tone_len;
 trial_per_level = 10;
 
 %% experiment 1
+
+global return_value;
+global correct_answer_details;
+global stimuli_to_play;
+global FS
+global trial
+global total
+
 factor1_levels = [1; 2; 3; 4];
 factor2_levels = 1:9;
 factor1_levels_1 = factor1_levels(randperm(length(factor1_levels)));
@@ -89,8 +97,9 @@ load('.\temp\conditions.mat')
 load('.\temp\start_trial.mat');
 load('.\temp\exp.mat');
 
+total = length(conditions);
 if(exp_num == 1)
-    for trial = start_trial :length(conditions)
+    for trial = start_trial :  length(conditions)
         start_trial = trial;
         save('.\temp\start_trial.mat', 'start_trial');
         clc;
@@ -133,8 +142,8 @@ if(exp_num == 1)
         end
         
         stimuli_to_play = [silence; TONE; silence].*w;
-        soundsc(stimuli_to_play, FS)
-        pause(length(stimuli_to_play)/FS);
+%         soundsc(stimuli_to_play, FS)
+%         pause(length(stimuli_to_play)/FS);
         if(debug)
             figure(1);
             spectrogram(stimuli_to_play(:,right_ear)+rand(size(stimuli_to_play(:,right_ear)))/10, 128, 32, 1024, 'yaxis');
@@ -146,21 +155,25 @@ if(exp_num == 1)
             set(gcf, 'WindowStyle', 'docked')
         end
         
+        ui_choices2;
+        
         valid_answer = 0;
         while(~valid_answer)
-            disp('Which one did you hear?');
-            disp('(1) /da/'); disp('(2) /ga/'); disp('(3) Chirp1'); disp('(4) Chirp2');
-            disp('(5) /da/+Chirp1'); disp('(6) /da/+Chirp2'); disp('(7) /ga/+Chirp1'); disp('(8) /ga/+Chirp2')
-            R = input('Enter your answer: ', 's');
-            if(isempty(R) || length(R)>1)
+%             disp('Which one did you hear?');
+%             disp('(1) /da/'); disp('(2) /ga/'); disp('(3) Chirp1'); disp('(4) Chirp2');
+%             disp('(5) /da/+Chirp1'); disp('(6) /da/+Chirp2'); disp('(7) /ga/+Chirp1'); disp('(8) /ga/+Chirp2')
+            R = return_value;
+            if(isempty(R))
                 disp('invalid answer'); pause(1);
             else
-                if( strcmpi(R, '1') || strcmpi(R, '2') || strcmpi(R, '3') || strcmpi(R, '4')  || strcmpi(R, '5') || strcmpi(R, '6') || strcmpi(R, '7') || strcmpi(R, '8')), valid_answer = 1; else; disp('invalid answer'); pause(1); end
+                if( strcmpi(R, '/da/') || strcmpi(R, '/ga/') || strcmpi(R, 'Rising chirp') || strcmpi(R, 'Falling chirp') || ...
+                     strcmpi(R, '/da/ + Rising chirp') || strcmpi(R, '/da/ + Falling chirp') || strcmpi(R, '/ga/ + Rising chirp') || strcmpi(R, '/ga/ + Falling chirp')), ...
+                     valid_answer = 1; else; disp('invalid answer'); pause(1); end
             end
         end
         
         load('response_experiment1.mat');
-        response = [response; {listener_code factor1_level factor2_level F3_f_start F3_f_end str2num(R)}];
+        response = [response; {listener_code factor1_level factor2_level F3_f_start F3_f_end R []}];
         save('response_experiment1.mat', 'response');
         
     end
@@ -173,6 +186,10 @@ if(exp_num == 1)
 end
 %% experiment 2
 if(exp_num == 2)
+    
+    global trial
+    global total
+
     
     clc
     input('Press enter to begin experiment 2');
@@ -207,6 +224,7 @@ if(exp_num == 2)
             conditions = [conditions; [factor1_levels_2(:) factor2_levels_3(:)]];
             
         end
+        conditions = [[conditions zeros(length(conditions),1)]; [conditions ones(length(conditions),1)]];
         conditions = conditions(randperm(length(conditions)), :);
         save('.\temp\conditions.mat', 'conditions');
         exp_num = 2;
@@ -219,7 +237,7 @@ if(exp_num == 2)
     load('.\temp\start_trial.mat');
     load('.\temp\exp.mat');
     
-    
+    total = length(conditions);
     for trial = start_trial : length(conditions)
         start_trial = trial;
         save('.\temp\start_trial.mat', 'start_trial');
@@ -248,7 +266,12 @@ if(exp_num == 2)
                 
                 silence_between = zeros(0.05*FS, 1);
                 TONE = zeros( 2*trans_dur*FS/1000 + length(silence_between), 2);
-                TONE(:, chirp_ear) = [F3_trans_tone_1(:); silence_between; F3_trans_tone_2(:)];
+                if(conditions(trial,3)>0)
+                    TONE(:, chirp_ear) = [F3_trans_tone_1(:); silence_between; F3_trans_tone_2(:)];
+                else
+                    TONE(:, chirp_ear) = [F3_trans_tone_1(:); silence_between; F3_trans_tone_1(:)];
+                end
+                
             case 2
                 % speech
                 [F1_cmplx_tone, ~, ~] = gen_complex_tone(F1_f_start, F1_f_end, F1_f_stable, trans_dur, stable_dur, FS);
@@ -259,9 +282,15 @@ if(exp_num == 2)
                 
                 silence_between = zeros(0.25*FS, 1);
                 TONE = zeros( 2*tone_len + length(silence_between), 2);
-                TONE(:, speech_ear) = [(F1_cmplx_tone + F2_cmplx_tone + F3_cmplx_tone_1)/1; ...
-                    silence_between; ...
-                    (F1_cmplx_tone + F2_cmplx_tone + F3_cmplx_tone_2)/1];
+                if(conditions(trial,3)>0)
+                    TONE(:, speech_ear) = [(F1_cmplx_tone + F2_cmplx_tone + F3_cmplx_tone_1)/1; ...
+                        silence_between; ...
+                        (F1_cmplx_tone + F2_cmplx_tone + F3_cmplx_tone_2)/1];
+                else
+                    TONE(:, speech_ear) = [(F1_cmplx_tone + F2_cmplx_tone + F3_cmplx_tone_1)/1; ...
+                        silence_between; ...
+                        (F1_cmplx_tone + F2_cmplx_tone + F3_cmplx_tone_1)/1];
+                end
                 
         end
         
@@ -269,8 +298,8 @@ if(exp_num == 2)
         w = hanning(size(TONE,1) + 2*length(silence));
         
         stimuli_to_play = [silence; TONE; silence].*w;
-        soundsc(stimuli_to_play, FS)
-        pause(length(stimuli_to_play)/FS);
+%         soundsc(stimuli_to_play, FS)
+%         pause(length(stimuli_to_play)/FS);
         if(debug)
             figure(1);
             spectrogram(stimuli_to_play(:,right_ear)+rand(size(stimuli_to_play(:,right_ear)))/10, 128, 32, 1024, 'yaxis');
@@ -282,23 +311,26 @@ if(exp_num == 2)
             set(gcf, 'WindowStyle', 'docked')
         end
         
+        ui_choices3;
+        
         valid_answer = 0;
         while(~valid_answer)
-            disp('Did the stimuli sound different');
-            disp('(1) Yes'); disp('(2) No');
-            R = input('Enter your answer: ', 's');
-            if(isempty(R) || length(R)>1)
+%             disp('Did the stimuli sound different');
+%             disp('(1) Yes'); disp('(2) No');
+%             R = input('Enter your answer: ', 's');
+            R = return_value;
+            if(isempty(R))
                 disp('invalid answer'); pause(1);
             else
-                if( strcmpi(R, '1') || strcmpi(R, '2')), valid_answer = 1; else; disp('invalid answer'); pause(1); end
+                if( strcmpi(R, 'No (same)') || strcmpi(R, 'Yes (different)')), valid_answer = 1; else; disp('invalid answer'); pause(1); end
             end
         end
         
         load('response_experiment2.mat');
         if(chirp_ear == left_ear)
-            response = [response; {listener_code factor1_level factor2_level F3_f_start_1 F3_f_start_2 F3_f_end 'left' 'right' str2num(R)}];
+            response = [response; {listener_code factor1_level factor2_level F3_f_start_1 F3_f_start_2 F3_f_end 'left' 'right' R conditions(trial,3)}];
         else
-            response = [response; {listener_code factor1_level factor2_level F3_f_start_1 F3_f_start_2 F3_f_end 'right' 'left' str2num(R)}];
+            response = [response; {listener_code factor1_level factor2_level F3_f_start_1 F3_f_start_2 F3_f_end 'right' 'left' R conditions(trial,3)}];
         end
         save('response_experiment2.mat', 'response');
         
