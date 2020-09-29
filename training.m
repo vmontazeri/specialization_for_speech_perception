@@ -1,5 +1,12 @@
 function training( debug, listener_code )
 
+global return_value;
+global correct_answer_details;
+global stimuli_to_play;
+global FS
+global trial
+global total
+
 F1_f_stable = 750;
 F1_f_start    = 250;
 F1_f_end     = 750;
@@ -45,13 +52,17 @@ for i = 1 : length(factor1_levels)
         conditions = [conditions; [factor1_levels_2(:) factor2_levels_3(:)]];
     end
 end
+temp_cond = conditions;
+temp_cond = temp_cond(randperm(length(temp_cond)),:);
 conditions = [conditions; conditions];
+conditions = [conditions; temp_cond];
 
 clc;
 disp('Before doing the experiment, you are going to have a brief training session to become familiar with the stimuli.')
 disp('Please note that during the traning, you''ll recevie feedback once you submit your answer!');
 input('Press enter to proceed');
 
+total = length(conditions);
 for trial = 1 : length(conditions)
     clc;
     
@@ -90,12 +101,21 @@ for trial = 1 : length(conditions)
     end
     
     correct_answer = factor2_level;
+    switch correct_answer
+            case 1
+                correct_answer_details = '/da/';
+            case 2
+                correct_answer_details = '/ga/';
+            case 3
+                correct_answer_details = 'Rising chirp';
+            case 4
+                correct_answer_details = 'Falling chirp';
+        end   
     
     stimuli_to_play = [silence; TONE; silence].*w;
-    soundsc(stimuli_to_play, FS)
-    pause(length(stimuli_to_play)/FS);
+    
     if(debug)
-        figure(1); 
+        figure(2); 
         spectrogram(stimuli_to_play(:,1)+rand(size(stimuli_to_play(:,1)))/10, 128, 32, 1024, 'yaxis'); 
         title('Right ear')
         set(gcf, 'WindowStyle', 'docked')
@@ -105,41 +125,46 @@ for trial = 1 : length(conditions)
         set(gcf, 'WindowStyle', 'docked')
     end
     
+    ui_choices;
+%     soundsc(stimuli_to_play, FS)
+%     pause(length(stimuli_to_play)/FS);
+%     
     valid_answer = 0;
     while(~valid_answer)
         disp('Which one did you hear?'); 
         disp('(1) /da/'); disp('(2) /ga/'); disp('(3) Chirp1'); disp('(4) Chirp2');         
-        R = input('Enter your answer: ', 's');
-        if(length(R)>1 || isempty(R))
-            disp('invalid answer'); pause(1);
-        else
-            if( strcmpi(R, '1') || strcmpi(R, '2') || strcmpi(R, '3') || strcmpi(R, '4')), valid_answer = 1; 
-            else; disp('invalid answer'); pause(1); 
-            end
+%         R = input('Enter your answer: ', 's');
+        R = return_value;
+%         if(length(R)>1 || isempty(R))
+%             disp('invalid answer'); pause(1);
+%         else
+        if( strcmpi(R, '/da/') || strcmpi(R, '/ga/') || strcmpi(R, 'Rising chirp') || strcmpi(R, 'Falling chirp')), valid_answer = 1; 
+        else; disp('invalid answer'); pause(1); 
         end
+%         end
     end
     
-    if(str2num(R) == correct_answer)
-        disp('CORRECT :)');
-    else
-        switch correct_answer
-            case 1
-                correct_answer_details = '/da/';
-            case 2
-                correct_answer_details = '/ga/';
-            case 3
-                correct_answer_details = 'Chirp 1';
-            case 4
-                correct_answer_details = 'Chirp 2';
-        end                
-        disp( ['INCORRECT :( Correct answer was ' correct_answer_details] );
-    end
+%     if(str2num(R) == correct_answer)
+%         disp('CORRECT :)');
+%     else
+%         switch correct_answer
+%             case 1
+%                 correct_answer_details = '/da/';
+%             case 2
+%                 correct_answer_details = '/ga/';
+%             case 3
+%                 correct_answer_details = 'Chirp 1';
+%             case 4
+%                 correct_answer_details = 'Chirp 2';
+%         end                
+%         disp( ['INCORRECT :( Correct answer was ' correct_answer_details] );
+%     end
     
-    disp('')
-    input('Press enter to proceed')
+%     disp('')
+%     input('Press enter to proceed')
     
     load('training_response.mat');
-    training_response = [training_response; {listener_code factor1_level factor2_level F3_f_start F3_f_end str2num(R)}];
+    training_response = [training_response; {listener_code factor1_level factor2_level F3_f_start F3_f_end R correct_answer_details}];
     save('training_response.mat', 'training_response');
 
 end
