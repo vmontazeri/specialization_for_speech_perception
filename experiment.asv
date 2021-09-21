@@ -323,10 +323,7 @@ if(exp_num == 2)
         end
         
 %         ui_choices3;
-            figure(1)
-            hold off
-            plot(stimuli_to_play/max(abs(stimuli_to_play(:))))
-            input('press enter to continue')
+        
 %         audiowrite( ['.\files\' fac2_name '_' num2str(factor1_level) '_ramp.wav'], stimuli_to_play/max(abs(stimuli_to_play(:))), 16000);
         
         valid_answer = 0;
