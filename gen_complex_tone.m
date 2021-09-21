@@ -19,3 +19,18 @@ if(f_start * f_end > 0)
     trans_tone = freq_varying_tone(f_start, f_end, trans_dur, FS, 1);
 end
 cmplx_tone = [trans_tone(:); stable_tone(:)];
+
+
+if stable_dur < 0
+    ramp_sec = 0.005;
+else
+    ramp_sec = 0.005;
+end
+L_ramp = round(ramp_sec*FS);
+L_steady = length(cmplx_tone) - 2 * L_ramp;
+window_up = linspace(0, 1, L_ramp);
+window_down = linspace(1, 0, L_ramp);
+window_steady = ones(1, L_steady);
+window = [window_up window_steady window_down];
+window = window(:);
+cmplx_tone = cmplx_tone .* window;
