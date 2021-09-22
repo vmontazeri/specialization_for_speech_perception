@@ -48,6 +48,8 @@ F3_f_stable          = 2527;
 F3_min_trans_f   = 1853;
 F3_max_trans_f  = 3196;
 
+ramp_sec = 0.005;
+
 trans_dur = 50;
 stable_dur = 200;
 FS = 16e3;
@@ -146,6 +148,16 @@ global total
 %                 TONE = repmat((F1_cmplx_tone + F2_cmplx_tone + F3_cmplx_tone)/1, 1, 2);
 %         end
 %         
+
+
+
+%         warning('verify') 
+%         ramp_ = gen_ramp(0.005, length(TONE), FS);
+%         TONE = TONE .* ramp_;
+
+
+
+
 %         stimuli_to_play = [silence; TONE; silence].*w;
 % %         soundsc(stimuli_to_play, FS)
 % %         pause(length(stimuli_to_play)/FS);
@@ -254,13 +266,13 @@ if(exp_num == 2)
         factor2_level = conditions(trial, 2);  %   stimuli type: chirp or speech
         if(debug), disp([factor1_level factor2_level]); end
         
-        if(rand(1,1)<=0.5 || 1)
+%         if(rand(1,1)<=0.5 || 1)
             F3_f_start_1 = find_F3_f_start(F3_min_trans_f, F3_max_trans_f, factor1_level);
             F3_f_start_2 = find_F3_f_start(F3_min_trans_f, F3_max_trans_f, factor1_level+3);
-        else
-            F3_f_start_2 = find_F3_f_start(F3_min_trans_f, F3_max_trans_f, factor1_level);
-            F3_f_start_1 = find_F3_f_start(F3_min_trans_f, F3_max_trans_f, factor1_level+3);
-        end
+%         else
+%             F3_f_start_2 = find_F3_f_start(F3_min_trans_f, F3_max_trans_f, factor1_level);
+%             F3_f_start_1 = find_F3_f_start(F3_min_trans_f, F3_max_trans_f, factor1_level+3);
+%         end
         F3_f_end  = F3_f_stable;
         if(debug), disp([round(F3_f_start_1) round(F3_f_start_2)]); end
         
@@ -275,11 +287,15 @@ if(exp_num == 2)
                 
                 silence_between = zeros(0.05*FS, 1);
                 TONE = zeros( 2*trans_dur*FS/1000 + length(silence_between), 2);
-                if(conditions(trial,3)>0 || 1)
+%                 if(conditions(trial,3)>0 || 1)
+
+                    F3_trans_tone_1 = gen_ramp( ramp_sec, F3_trans_tone_1, FS );
+                    F3_trans_tone_2 = gen_ramp( ramp_sec, F3_trans_tone_2, FS );
                     TONE(:, chirp_ear) = [F3_trans_tone_1(:); silence_between; F3_trans_tone_2(:)];
-                else
-                    TONE(:, chirp_ear) = [F3_trans_tone_1(:); silence_between; F3_trans_tone_1(:)];
-                end
+                    
+%                 else
+%                     TONE(:, chirp_ear) = [F3_trans_tone_1(:); silence_between; F3_trans_tone_1(:)];
+%                 end
                 
             case 2
                 
@@ -293,21 +309,24 @@ if(exp_num == 2)
                 
                 silence_between = zeros(0.25*FS, 1);
                 TONE = zeros( 2*tone_len + length(silence_between), 2);
-                if(conditions(trial,3)>0 || 1)
-                    TONE(:, speech_ear) = [(F1_cmplx_tone + F2_cmplx_tone + F3_cmplx_tone_1)/1; ...
-                        silence_between; ...
-                        (F1_cmplx_tone + F2_cmplx_tone + F3_cmplx_tone_2)/1];
-                else
-                    TONE(:, speech_ear) = [(F1_cmplx_tone + F2_cmplx_tone + F3_cmplx_tone_1)/1; ...
-                        silence_between; ...
-                        (F1_cmplx_tone + F2_cmplx_tone + F3_cmplx_tone_1)/1];
-                end
+%                 if(conditions(trial,3)>0 || 1)
+
+                    in1_ = (F1_cmplx_tone + F2_cmplx_tone + F3_cmplx_tone_1)/1;
+                    in2_ = (F1_cmplx_tone + F2_cmplx_tone + F3_cmplx_tone_2)/1;
+                    in1_ = gen_ramp( ramp_sec, in1_, FS );
+                    in2_ = gen_ramp( ramp_sec, in2_, FS );
+                    TONE(:, speech_ear) = [in1_; silence_between; in2_];
+%                 else
+%                     TONE(:, speech_ear) = [(F1_cmplx_tone + F2_cmplx_tone + F3_cmplx_tone_1)/1; ...
+%                         silence_between; ...
+%                         (F1_cmplx_tone + F2_cmplx_tone + F3_cmplx_tone_1)/1];
+%                 end
                 
         end
         
         silence = zeros(0.5*FS,2);
         w = hanning(size(TONE,1) + 2*length(silence));
-        
+                        
         stimuli_to_play = [silence; TONE; silence].*w;
 %         soundsc(stimuli_to_play, FS)
 %         pause(length(stimuli_to_play)/FS);
@@ -323,11 +342,7 @@ if(exp_num == 2)
         end
         
 %         ui_choices3;
-            figure(1)
-            hold off
-            plot(stimuli_to_play/max(abs(stimuli_to_play(:))))
-            input('press enter to continue')
-%         audiowrite( ['.\files\' fac2_name '_' num2str(factor1_level) '_ramp.wav'], stimuli_to_play/max(abs(stimuli_to_play(:))), 16000);
+        audiowrite( ['.\files\' fac2_name '_' num2str(factor1_level) '_ramp.wav'], stimuli_to_play/max(abs(stimuli_to_play(:))), 16000);
         
         valid_answer = 0;
         while(~valid_answer)
